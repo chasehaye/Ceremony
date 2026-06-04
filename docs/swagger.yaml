@@ -1,9 +1,432 @@
 basePath: /
+definitions:
+  Ceremony_internal_dtos.AlreadyExistsResponse:
+    properties:
+      error:
+        example: Already in use
+        type: string
+    type: object
+  Ceremony_internal_dtos.NotFoundErrorResponse:
+    properties:
+      error:
+        example: Resource not found
+        type: string
+    type: object
+  Ceremony_internal_dtos.ServerErrorResponse:
+    properties:
+      error:
+        example: An unexpected error occurred
+        type: string
+    type: object
+  Ceremony_internal_dtos.UnauthorizedResponse:
+    properties:
+      error:
+        example: Invalid credentials or session
+        type: string
+    type: object
+  Ceremony_internal_dtos.ValidationErrorResponse:
+    properties:
+      details:
+        additionalProperties:
+          type: string
+        type: object
+      error:
+        example: Validation failed
+        type: string
+    type: object
+  internal_handlers.StatusResponse:
+    properties:
+      database:
+        example: conntect?
+        type: string
+      status:
+        example: healthy?
+        type: string
+    type: object
+  internal_handlers_auth.ForgotPasswordInput:
+    properties:
+      email:
+        example: user@example.com
+        maxLength: 255
+        type: string
+    required:
+    - email
+    type: object
+  internal_handlers_auth.ForgotPasswordResponse:
+    properties:
+      message:
+        example: Check your inbox for a reset link
+        type: string
+    type: object
+  internal_handlers_auth.LogOutResponse:
+    properties:
+      message:
+        example: success
+        type: string
+    type: object
+  internal_handlers_auth.LoginInput:
+    properties:
+      email:
+        example: user@example.com
+        maxLength: 255
+        type: string
+      password:
+        example: SecurePass123!
+        maxLength: 72
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  internal_handlers_auth.LoginResponse:
+    properties:
+      is_admin:
+        example: false
+        type: boolean
+      is_approved:
+        example: false
+        type: boolean
+      is_verified:
+        example: false
+        type: boolean
+      message:
+        example: success
+        type: string
+      user_email:
+        example: user@example.com
+        type: string
+      user_name:
+        example: User Name
+        type: string
+    type: object
+  internal_handlers_auth.RegisterInput:
+    properties:
+      email:
+        example: user@example.com
+        maxLength: 255
+        type: string
+      name:
+        example: User Name
+        maxLength: 255
+        type: string
+      password:
+        example: SecurePass123!
+        maxLength: 72
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  internal_handlers_auth.RegisterResponse:
+    properties:
+      is_admin:
+        example: false
+        type: boolean
+      is_approved:
+        example: false
+        type: boolean
+      is_verified:
+        example: false
+        type: boolean
+      message:
+        example: success
+        type: string
+      user_email:
+        example: user@example.com
+        type: string
+      user_name:
+        example: User Name
+        type: string
+    type: object
+  internal_handlers_auth.ResetPasswordInput:
+    properties:
+      password:
+        example: SecurePass123!
+        maxLength: 72
+        minLength: 8
+        type: string
+    required:
+    - password
+    type: object
+  internal_handlers_auth.ResetPasswordResponse:
+    properties:
+      message:
+        example: Password updated successfully
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
   description: API Server for Log Relay Project.
   title: Log Relay API
   version: "1.0"
-paths: {}
+paths:
+  /api/auth/change-password/{token}:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Validates the reset token and updates the user's password.
+        Automatically logs the user in by setting a session cookie upon success.
+      parameters:
+      - description: Reset Token
+        in: path
+        name: token
+        required: true
+        type: string
+      - description: New Password
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers_auth.ResetPasswordInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers_auth.ResetPasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ValidationErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.UnauthorizedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ServerErrorResponse'
+      summary: Change Password
+      tags:
+      - accounts
+  /api/auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Sends a password reset link to the provided email if the account exists.
+        Always returns a success message to prevent email enumeration.
+      parameters:
+      - description: User Email
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers_auth.ForgotPasswordInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers_auth.ForgotPasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ServerErrorResponse'
+      summary: Request Password Reset
+      tags:
+      - accounts
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Login for exisitng user using email and passwrod (compares the stored hash to the input).
+        Returns a success message and sets an HttpOnly 'token' cookie.
+      parameters:
+      - description: User Login Credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers_auth.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_handlers_auth.LoginResponse'
+        "400":
+          description: Invalid input or malformed email
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ValidationErrorResponse'
+        "401":
+          description: Validation failed
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.UnauthorizedResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ServerErrorResponse'
+      summary: Login Existing User
+      tags:
+      - accounts
+  /api/auth/logout:
+    post:
+      description: Invalidates the session by clearing the 'token' cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Set-Cookie:
+              description: token=; Max-Age=0; Path=/; HttpOnly; Secure
+              type: string
+          schema:
+            $ref: '#/definitions/internal_handlers_auth.LogOutResponse'
+        "401":
+          description: Session expired or invalid
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.UnauthorizedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ServerErrorResponse'
+      summary: User Logout
+      tags:
+      - accounts
+  /api/auth/me:
+    get:
+      description: Returns the details of the authenticated user based on the session
+        cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers_auth.LoginResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.UnauthorizedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ServerErrorResponse'
+      summary: Get Current User Info
+      tags:
+      - accounts
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Creates a user account, hashes the password
+        Returns and sets an HttpOnly 'token' cookie.
+      parameters:
+      - description: User Registration Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers_auth.RegisterInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_handlers_auth.RegisterResponse'
+        "400":
+          description: Validation failed
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ValidationErrorResponse'
+        "409":
+          description: User already exists with email
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.AlreadyExistsResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ServerErrorResponse'
+      summary: Register New User
+      tags:
+      - accounts
+  /api/auth/send-verification:
+    post:
+      description: Sends an email verification link to the authenticated user's email
+        address.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.UnauthorizedResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.NotFoundErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ServerErrorResponse'
+      summary: Send Verification Email
+      tags:
+      - accounts
+  /api/auth/verify/{token}:
+    post:
+      description: Validates the email verification token and marks the user as verified.
+      parameters:
+      - description: Verification Token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.UnauthorizedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ServerErrorResponse'
+      summary: Verify Email
+      tags:
+      - accounts
+  /api/status:
+    get:
+      description: Checks if the API and Database are reachable.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.StatusResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.StatusResponse'
+      summary: Health Check
+      tags:
+      - system
 swagger: "2.0"

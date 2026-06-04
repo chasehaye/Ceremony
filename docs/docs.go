@@ -14,7 +14,621 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/api/auth/change-password/{token}": {
+            "post": {
+                "description": "Validates the reset token and updates the user's password.\nAutomatically logs the user in by setting a session cookie upon success.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Change Password",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Reset Token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New Password",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers_auth.ResetPasswordInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers_auth.ResetPasswordResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.ValidationErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.UnauthorizedResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.ServerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/forgot-password": {
+            "post": {
+                "description": "Sends a password reset link to the provided email if the account exists.\nAlways returns a success message to prevent email enumeration.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Request Password Reset",
+                "parameters": [
+                    {
+                        "description": "User Email",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers_auth.ForgotPasswordInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers_auth.ForgotPasswordResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.ValidationErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.ServerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "description": "Login for exisitng user using email and passwrod (compares the stored hash to the input).\nReturns a success message and sets an HttpOnly 'token' cookie.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Login Existing User",
+                "parameters": [
+                    {
+                        "description": "User Login Credentials",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers_auth.LoginInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers_auth.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or malformed email",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.ValidationErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Validation failed",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.UnauthorizedResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.ServerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/logout": {
+            "post": {
+                "description": "Invalidates the session by clearing the 'token' cookie.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "User Logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers_auth.LogOutResponse"
+                        },
+                        "headers": {
+                            "Set-Cookie": {
+                                "type": "string",
+                                "description": "token=; Max-Age=0; Path=/; HttpOnly; Secure"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Session expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.UnauthorizedResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.ServerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/me": {
+            "get": {
+                "description": "Returns the details of the authenticated user based on the session cookie.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Get Current User Info",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers_auth.LoginResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.UnauthorizedResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.ServerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/register": {
+            "post": {
+                "description": "Creates a user account, hashes the password\nReturns and sets an HttpOnly 'token' cookie.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Register New User",
+                "parameters": [
+                    {
+                        "description": "User Registration Data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers_auth.RegisterInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers_auth.RegisterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation failed",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.ValidationErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "User already exists with email",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.AlreadyExistsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.ServerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/send-verification": {
+            "post": {
+                "description": "Sends an email verification link to the authenticated user's email address.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Send Verification Email",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.UnauthorizedResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.NotFoundErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.ServerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/verify/{token}": {
+            "post": {
+                "description": "Validates the email verification token and marks the user as verified.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Verify Email",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Verification Token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.UnauthorizedResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/Ceremony_internal_dtos.ServerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/status": {
+            "get": {
+                "description": "Checks if the API and Database are reachable.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Health Check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.StatusResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.StatusResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Ceremony_internal_dtos.AlreadyExistsResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "Already in use"
+                }
+            }
+        },
+        "Ceremony_internal_dtos.NotFoundErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "Resource not found"
+                }
+            }
+        },
+        "Ceremony_internal_dtos.ServerErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "An unexpected error occurred"
+                }
+            }
+        },
+        "Ceremony_internal_dtos.UnauthorizedResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "Invalid credentials or session"
+                }
+            }
+        },
+        "Ceremony_internal_dtos.ValidationErrorResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "error": {
+                    "type": "string",
+                    "example": "Validation failed"
+                }
+            }
+        },
+        "internal_handlers.StatusResponse": {
+            "type": "object",
+            "properties": {
+                "database": {
+                    "type": "string",
+                    "example": "conntect?"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "healthy?"
+                }
+            }
+        },
+        "internal_handlers_auth.ForgotPasswordInput": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "example": "user@example.com"
+                }
+            }
+        },
+        "internal_handlers_auth.ForgotPasswordResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Check your inbox for a reset link"
+                }
+            }
+        },
+        "internal_handlers_auth.LogOutResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "internal_handlers_auth.LoginInput": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "example": "user@example.com"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 8,
+                    "example": "SecurePass123!"
+                }
+            }
+        },
+        "internal_handlers_auth.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "is_admin": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "is_approved": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "is_verified": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "user_email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "user_name": {
+                    "type": "string",
+                    "example": "User Name"
+                }
+            }
+        },
+        "internal_handlers_auth.RegisterInput": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "example": "user@example.com"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "example": "User Name"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 8,
+                    "example": "SecurePass123!"
+                }
+            }
+        },
+        "internal_handlers_auth.RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "is_admin": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "is_approved": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "is_verified": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "message": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "user_email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "user_name": {
+                    "type": "string",
+                    "example": "User Name"
+                }
+            }
+        },
+        "internal_handlers_auth.ResetPasswordInput": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 8,
+                    "example": "SecurePass123!"
+                }
+            }
+        },
+        "internal_handlers_auth.ResetPasswordResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Password updated successfully"
+                }
+            }
+        }
+    }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it

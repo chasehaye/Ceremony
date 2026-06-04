@@ -19,10 +19,16 @@ import (
 	"Ceremony/internal/services/mail"
 )
 
-
-
-
-
+// SendVerificationEmail godoc
+// @Summary      Send Verification Email
+// @Description  Sends an email verification link to the authenticated user's email address.
+// @Tags         accounts
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Failure      401  {object}  dtos.UnauthorizedResponse
+// @Failure      404  {object}  dtos.NotFoundErrorResponse
+// @Failure      500  {object}  dtos.ServerErrorResponse
+// @Router       /api/auth/send-verification [post]
 func SendVerificationEmail(c *gin.Context, db *gorm.DB) {
     uidInterface, exists := c.Get("userID")
     if !exists {
@@ -73,6 +79,16 @@ func SendVerificationEmail(c *gin.Context, db *gorm.DB) {
     c.JSON(http.StatusOK, gin.H{"message": "Verification email sent"})
 }
 
+// VerifyEmail godoc
+// @Summary      Verify Email
+// @Description  Validates the email verification token and marks the user as verified.
+// @Tags         accounts
+// @Produce      json
+// @Param        token  path      string  true  "Verification Token"
+// @Success      200    {object}  map[string]string
+// @Failure      401    {object}  dtos.UnauthorizedResponse
+// @Failure      500    {object}  dtos.ServerErrorResponse
+// @Router       /api/auth/verify/{token} [post]
 func VerifyEmail(c *gin.Context, db *gorm.DB) {
     token := c.Param("token")
     hashedToken := crypt.HashToken(token)
@@ -106,41 +122,6 @@ func VerifyEmail(c *gin.Context, db *gorm.DB) {
     c.JSON(http.StatusOK, gin.H{"message": "Email verified successfully"})
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ForgotPassword godoc
 // @Summary      Request Password Reset
 // @Description  Sends a password reset link to the provided email if the account exists. 
@@ -152,7 +133,7 @@ func VerifyEmail(c *gin.Context, db *gorm.DB) {
 // @Success      200    {object}  ForgotPasswordResponse
 // @Failure      400    {object}  dtos.ValidationErrorResponse
 // @Failure      500    {object}  dtos.ServerErrorResponse
-// @Router       /api/user/forgot-password [post]
+// @Router       /api/auth/forgot-password [post]
 func ForgotPassword(c *gin.Context, db *gorm.DB){
 	var input ForgotPasswordInput
 		if err := c.ShouldBindJSON(&input); err != nil {
@@ -219,13 +200,13 @@ func ForgotPassword(c *gin.Context, db *gorm.DB){
 // @Accept       json
 // @Produce      json
 // @Param        token  path      string         true  "Reset Token"
-// @Param        input  body      PasswordInput  true  "New Password"
+// @Param        input  body      ResetPasswordInput  true  "New Password"
 // @Header       200    {string}  Set-Cookie     "token=jwt_value; HttpOnly; Secure; SameSite=Lax"
 // @Success      200    {object}  ResetPasswordResponse
 // @Failure      400    {object}  dtos.ValidationErrorResponse
 // @Failure      401    {object}  dtos.UnauthorizedResponse
 // @Failure      500    {object}  dtos.ServerErrorResponse
-// @Router       /api/user/change-password/{token} [post]
+// @Router       /api/auth/change-password/{token} [post]
 func ResetPassword(c *gin.Context, db *gorm.DB) {
     token := c.Param("token")
     var input ResetPasswordInput

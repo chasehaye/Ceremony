@@ -15,14 +15,6 @@ import (
 	"Ceremony/internal/handlers/auth/validation"
 )
 
-
-
-
-
-
-
-
-
 // CreateUser godoc
 // @Summary      Register New User
 // @Description  Creates a user account, hashes the password
@@ -36,7 +28,7 @@ import (
 // @Failure      400   {object}  dtos.ValidationErrorResponse "Validation failed"
 // @Failure      409   {object}  dtos.AlreadyExistsResponse   "User already exists with email"
 // @Failure      500   {object}  dtos.ServerErrorResponse     "Server error"
-// @Router       /api/user/register [post]
+// @Router       /api/auth/register [post]
 func RegisterUser(c *gin.Context, db *gorm.DB) {
     var input RegisterInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -126,7 +118,6 @@ func RegisterUser(c *gin.Context, db *gorm.DB) {
 	})
 }
 
-
 // LoginUser godoc
 // @Summary     Login Existing User
 // @Description Login for exisitng user using email and passwrod (compares the stored hash to the input).
@@ -140,7 +131,7 @@ func RegisterUser(c *gin.Context, db *gorm.DB) {
 // @Failure      400   {object}  dtos.ValidationErrorResponse "Invalid input or malformed email"
 // @Failure      401   {object}  dtos.UnauthorizedResponse "Validation failed"
 // @Failure      500   {object}  dtos.ServerErrorResponse     "Server error"
-// @Router       /api/user/login [post]
+// @Router       /api/auth/login [post]
 func LoginUser(c *gin.Context, db *gorm.DB) {
 	var input LoginInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -196,7 +187,6 @@ func LoginUser(c *gin.Context, db *gorm.DB) {
 	})
 }
 
-
 // LogOut godoc
 // @Summary      User Logout
 // @Description  Invalidates the session by clearing the 'token' cookie.
@@ -206,13 +196,12 @@ func LoginUser(c *gin.Context, db *gorm.DB) {
 // @Header       200  {string}  Set-Cookie  "token=; Max-Age=0; Path=/; HttpOnly; Secure"
 // @Failure      401  {object}  dtos.UnauthorizedResponse "Session expired or invalid"
 // @Failure      500  {object}  dtos.ServerErrorResponse
-// @Router       /api/user/logout [post]
+// @Router       /api/auth/logout [post]
 func LogOut(c *gin.Context, db *gorm.DB) {
     c.SetCookie("token", "", -1, "/", config.App.CookieDomain, config.IsProduction(), true)
 
     c.JSON(http.StatusOK, LogOutResponse{Message: "Successfully logged out",})
 }
-
 
 // GetMe godoc
 // @Summary      Get Current User Info
@@ -222,7 +211,7 @@ func LogOut(c *gin.Context, db *gorm.DB) {
 // @Success      200  {object}  LoginResponse
 // @Failure      401  {object}  dtos.UnauthorizedResponse
 // @Failure      500  {object}  dtos.ServerErrorResponse
-// @Router       /api/user/me [get]
+// @Router       /api/auth/me [get]
 func GetMe(c *gin.Context, db *gorm.DB) {
 	uidInterface, exists := c.Get("userID")
 	if !exists {
