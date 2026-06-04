@@ -119,6 +119,8 @@ func RegisterUser(c *gin.Context, db *gorm.DB) {
     c.JSON(http.StatusCreated, RegisterResponse{
 		Message:   "success",
 		IsAdmin:   isAdmin,
+        IsVerified: false,
+        IsApproved: false,
 		UserEmail: cleanEmail,
 		UserName:  displayName,
 	})
@@ -187,6 +189,8 @@ func LoginUser(c *gin.Context, db *gorm.DB) {
 	c.JSON(http.StatusOK, LoginResponse{
 		Message:   "success",
 		IsAdmin:   user.IsAdmin,
+        IsVerified: user.IsVerified,
+        IsApproved: user.IsApproved,
 		UserEmail: user.Email,
 		UserName:  user.Name,
 	})
@@ -242,5 +246,7 @@ func GetMe(c *gin.Context, db *gorm.DB) {
         UserName:  user.Name,
         UserEmail: user.Email,
         IsAdmin:   user.IsAdmin,
+        IsVerified: user.IsVerified,
+        IsApproved: user.IsApproved,
     })
 }

@@ -36,7 +36,7 @@ func main() {
     err = db.AutoMigrate(
         &models.User{},
         &models.PasswordReset{},
-        &models.EmailChangeRequest{},
+        &models.EmailVerification{},
     )
     if err != nil {
         log.Fatalf("Migration failed: %v", err)

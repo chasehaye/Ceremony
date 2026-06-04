@@ -8,10 +8,12 @@ type RegisterInput struct {
 }
 
 type RegisterResponse struct {
-	Message   string `json:"message" example:"success"`
-	IsAdmin   bool   `json:"is_admin" example:"false"`
-	UserEmail string `json:"user_email" example:"user@example.com"`
-	UserName  string `json:"user_name" example:"User Name"`
+    Message    string `json:"message" example:"success"`
+    IsAdmin    bool   `json:"is_admin" example:"false"`
+    IsVerified bool   `json:"is_verified" example:"false"`
+    IsApproved bool   `json:"is_approved" example:"false"`
+    UserEmail  string `json:"user_email" example:"user@example.com"`
+    UserName   string `json:"user_name" example:"User Name"`
 }
 
 type LoginInput struct {
@@ -22,6 +24,8 @@ type LoginInput struct {
 type LoginResponse struct {
     Message   string `json:"message" example:"success"`
     IsAdmin   bool   `json:"is_admin" example:"false"`
+	IsVerified bool   `json:"is_verified" example:"false"`
+    IsApproved bool   `json:"is_approved" example:"false"`
     UserEmail string `json:"user_email" example:"user@example.com"`
     UserName  string `json:"user_name" example:"User Name"`
 }
@@ -35,6 +39,8 @@ type GetMeResponse struct {
     UserName  string `json:"user_name" example:"User Name"`
     UserEmail string `json:"user_email" example:"user@example.com"`
     IsAdmin   bool   `json:"is_admin" example:"false"`
+	IsVerified bool   `json:"is_verified" example:"false"`
+    IsApproved bool   `json:"is_approved" example:"false"`
 }
 
 type ForgotPasswordInput struct {

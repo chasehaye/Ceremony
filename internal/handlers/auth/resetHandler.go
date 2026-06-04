@@ -19,6 +19,128 @@ import (
 	"Ceremony/internal/services/mail"
 )
 
+
+
+
+
+func SendVerificationEmail(c *gin.Context, db *gorm.DB) {
+    uidInterface, exists := c.Get("userID")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, dtos.UnauthorizedResponse{Error: "Session context missing"})
+        return
+    }
+    uid := uidInterface.(uint)
+
+    var user models.User
+    if err := db.First(&user, uid).Error; err != nil {
+        c.JSON(http.StatusNotFound, dtos.NotFoundErrorResponse{Error: "User not found"})
+        return
+    }
+
+    if user.IsVerified {
+        c.JSON(http.StatusOK, gin.H{"message": "Already verified"})
+        return
+    }
+
+    db.Model(&models.EmailVerification{}).
+        Where("user_id = ? AND used = ?", uid, false).
+        Update("used", true)
+
+    token, err := crypt.GenerateToken()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, dtos.ServerErrorResponse{Error: "Failed to generate token"})
+        return
+    }
+
+    record := models.EmailVerification{
+        UserID:    uid,
+        Token:     crypt.HashToken(token),
+        ExpiresAt: time.Now().Add(24 * time.Hour),
+    }
+    if err := db.Create(&record).Error; err != nil {
+        log.Printf("Failed to create verification record: %v", err)
+        c.JSON(http.StatusInternalServerError, dtos.ServerErrorResponse{Error: "Could not send verification email"})
+        return
+    }
+
+    verifyLink := fmt.Sprintf("%s/verify/%s", strings.TrimSuffix(config.App.FrontendURL, "/"), token)
+    if err := mail.SendVerificationEmail(user.Email, verifyLink); err != nil {
+        log.Printf("Failed to send verification email to %s: %v", user.Email, err)
+        c.JSON(http.StatusInternalServerError, dtos.ServerErrorResponse{Error: "Could not send verification email"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Verification email sent"})
+}
+
+func VerifyEmail(c *gin.Context, db *gorm.DB) {
+    token := c.Param("token")
+    hashedToken := crypt.HashToken(token)
+
+    var record models.EmailVerification
+    result := db.Preload("User").
+        Where("token = ? AND used = ? AND expires_at > ?", hashedToken, false, time.Now()).
+        Limit(1).Find(&record)
+
+    if result.Error != nil || result.RowsAffected == 0 {
+        c.JSON(http.StatusUnauthorized, dtos.UnauthorizedResponse{Error: "Invalid or expired token"})
+        return
+    }
+
+    err := db.Transaction(func(tx *gorm.DB) error {
+        if err := tx.Model(&models.User{}).Where("id = ?", record.UserID).Update("is_verified", true).Error; err != nil {
+            return err
+        }
+        if err := tx.Model(&record).Update("used", true).Error; err != nil {
+            return err
+        }
+        return nil
+    })
+
+    if err != nil {
+        log.Printf("Failed to verify user %d: %v", record.UserID, err)
+        c.JSON(http.StatusInternalServerError, dtos.ServerErrorResponse{Error: "Could not complete verification"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Email verified successfully"})
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ForgotPassword godoc
 // @Summary      Request Password Reset
 // @Description  Sends a password reset link to the provided email if the account exists. 

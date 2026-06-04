@@ -12,6 +12,11 @@ func SendResetEmail(to, resetLink string) error {
     return sendMail(to, "Reset your password", html)
 }
 
+func SendVerificationEmail(to, verifyLink string) error {
+    html := templates.VerificationEmail(verifyLink)
+    return sendMail(to, "Verify your email", html)
+}
+
 func sendMail(to, subject, body string) error {
     client := resend.NewClient(config.App.ResendAPIKey)
 
