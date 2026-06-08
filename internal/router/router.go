@@ -34,6 +34,7 @@ func Setup(db *gorm.DB) *gin.Engine {
 
     routes.Status(r, db)
     routes.Auth(r, db)
+    routes.Admin(r, db)
 
 
     if !config.IsProduction() {

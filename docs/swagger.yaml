@@ -43,6 +43,34 @@ definitions:
         example: healthy?
         type: string
     type: object
+  internal_handlers_admin.ListUsersResponse:
+    properties:
+      total:
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/internal_handlers_admin.UserListItem'
+        type: array
+    type: object
+  internal_handlers_admin.UserListItem:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_admin:
+        type: boolean
+      is_approved:
+        type: boolean
+      is_verified:
+        type: boolean
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
   internal_handlers_auth.ForgotPasswordInput:
     properties:
       email:
@@ -163,6 +191,73 @@ info:
   title: Log Relay API
   version: "1.0"
 paths:
+  /api/admin/users:
+    get:
+      description: Returns all users sorted by creation date, newest first.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers_admin.ListUsersResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ServerErrorResponse'
+      summary: List All Users
+      tags:
+      - admin
+  /api/admin/users/{id}/approve:
+    patch:
+      description: Sets is_approved to true for the specified user.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ServerErrorResponse'
+      summary: Approve User
+      tags:
+      - admin
+  /api/admin/users/{id}/reject:
+    patch:
+      description: Sets is_approved to false for the specified user.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Ceremony_internal_dtos.ServerErrorResponse'
+      summary: Reject User
+      tags:
+      - admin
   /api/auth/change-password/{token}:
     post:
       consumes:
