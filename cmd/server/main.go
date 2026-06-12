@@ -37,6 +37,12 @@ func main() {
         &models.User{},
         &models.PasswordReset{},
         &models.EmailVerification{},
+        &models.Organization{},
+        &models.OrganizationMember{},
+        &models.Domain{},
+        &models.App{},
+        &models.EmailTemplate{},
+        &models.EmailLog{},
     )
     if err != nil {
         log.Fatalf("Migration failed: %v", err)

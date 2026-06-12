@@ -9,15 +9,15 @@ import (
 
 func SendResetEmail(to, resetLink string) error {
     html := templates.ResetEmail(resetLink)
-    return sendMail(to, "Reset your password", html)
+    return SendMail(to, "Reset your password", html)
 }
 
 func SendVerificationEmail(to, verifyLink string) error {
     html := templates.VerificationEmail(verifyLink)
-    return sendMail(to, "Verify your email", html)
+    return SendMail(to, "Verify your email", html)
 }
 
-func sendMail(to, subject, body string) error {
+func SendMail(to, subject, body string) error {
     client := resend.NewClient(config.App.ResendAPIKey)
 
     params := &resend.SendEmailRequest{
