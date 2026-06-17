@@ -62,7 +62,6 @@ func CreateOrg(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusCreated, CreateOrgResponse{
 		Organization: OrgResponse{
-			ID:   org.ID,
 			Name: org.Name,
 			Slug: org.Slug,
 		},
@@ -87,7 +86,6 @@ func GetOrg(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusOK, OrgWithRoleResponse{
 		Organization: OrgResponse{
-			ID:   org.ID,
 			Name: org.Name,
 			Slug: org.Slug,
 		},
@@ -102,6 +100,7 @@ func GetUserOrgs(c *gin.Context, db *gorm.DB) {
 	if err := db.Preload("Organization").
 		Joins("JOIN organizations ON organizations.id = organization_members.organization_id AND organizations.deleted_at IS NULL").
 		Where("user_id = ?", userID).
+		Order("organization_members.created_at DESC").
 		Find(&memberships).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, dtos.ServerErrorResponse{Error: "Failed to fetch organizations"})
 		return
@@ -114,7 +113,6 @@ func GetUserOrgs(c *gin.Context, db *gorm.DB) {
 		}
 		result = append(result, OrgWithRoleResponse{
 			Organization: OrgResponse{
-				ID:   m.Organization.ID,
 				Name: m.Organization.Name,
 				Slug: m.Organization.Slug,
 			},
