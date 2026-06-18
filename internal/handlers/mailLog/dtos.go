@@ -8,14 +8,15 @@ type SendMailInput struct {
     Body    string `json:"body" binding:"required"`
 }
 
-
 type EmailLogResponse struct {
-    ID        uint      `json:"id"`
-    ToEmail   string    `json:"to_email"`
-    Subject   string    `json:"subject"`
-    Status    string    `json:"status"`
-    Error     string    `json:"error,omitempty"`
-    CreatedAt time.Time `json:"created_at"`
+    ID          uint      `json:"id"`
+    ToEmail     string    `json:"to_email"`
+    Subject     string    `json:"subject"`
+    Body        string    `json:"body"`
+    FromAddress string    `json:"from_address"`
+    Status      string    `json:"status"`
+    Error       string    `json:"error,omitempty"`
+    CreatedAt   time.Time `json:"created_at"`
 }
 
 type ListEmailLogsResponse struct {

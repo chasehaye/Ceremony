@@ -13,7 +13,6 @@ import (
 
 func Send(c *gin.Context, db *gorm.DB) {
     appID := c.MustGet("appID").(uint)
-    // userID := c.MustGet("userID").(uint)
 
     var input SendMailInput
     if err := c.ShouldBindJSON(&input); err != nil {
@@ -28,13 +27,29 @@ func Send(c *gin.Context, db *gorm.DB) {
         return
     }
 
+    // fetch app to get orgID and domain
+    var app models.App
+    if err := db.Preload("Domain").First(&app, appID).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, dtos.ServerErrorResponse{Error: "Failed to fetch app"})
+        return
+    }
+
+    fromDomain := ""
+    fromAddress := ""
+    if app.Domain != nil {
+        fromDomain = app.Domain.Name
+        fromAddress = "noreply@" + app.Domain.Name
+    }
+
     log := models.EmailLog{
-        AppID:   appID,
-        // UserID:  userID,
-        ToEmail: input.To,
-        Subject: input.Subject,
-        Body:    input.Body,
-        Status:  "pending",
+        OrganizationID: app.OrganizationID,
+        AppID:          appID,
+        FromDomain:     fromDomain,
+        FromAddress:    fromAddress,
+        ToEmail:        input.To,
+        Subject:        input.Subject,
+        Body:           input.Body,
+        Status:         "pending",
     }
     db.Create(&log)
 
@@ -51,17 +66,14 @@ func Send(c *gin.Context, db *gorm.DB) {
     c.JSON(http.StatusOK, gin.H{"message": "Email sent"})
 }
 
-
 func Logs(c *gin.Context, db *gorm.DB) {
-    uid := c.MustGet("userID").(uint)
+    orgID := c.MustGet("orgID").(uint)
 
     var logs []models.EmailLog
-
     if err := db.
-        Where("user_id = ?", uid).
+        Where("organization_id = ?", orgID).
         Order("created_at DESC").
         Find(&logs).Error; err != nil {
-
         c.JSON(http.StatusInternalServerError, dtos.ServerErrorResponse{
             Error: "Failed to fetch logs",
         })
@@ -69,15 +81,16 @@ func Logs(c *gin.Context, db *gorm.DB) {
     }
 
     items := make([]EmailLogResponse, len(logs))
-
     for i, log := range logs {
         items[i] = EmailLogResponse{
-            ID:        log.ID,
-            ToEmail:   log.ToEmail,
-            Subject:   log.Subject,
-            Status:    log.Status,
-            Error:     log.Error,
-            CreatedAt: log.CreatedAt,
+            ID:          log.ID,
+            ToEmail:     log.ToEmail,
+            Subject:     log.Subject,
+            Body:        log.Body,
+            FromAddress: log.FromAddress,
+            Status:      log.Status,
+            Error:       log.Error,
+            CreatedAt:   log.CreatedAt,
         }
     }
 

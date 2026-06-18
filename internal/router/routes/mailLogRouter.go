@@ -12,15 +12,19 @@ func MailLog(r *gin.Engine, db *gorm.DB){
 
 
 
-	public := r.Group("/api")
-	public.Use(middleware.APIKeyMiddleware(db))
+    public := r.Group("/api")
+    public.Use(middleware.APIKeyMiddleware(db))
     {
-		public.POST("/mail/send", func(c *gin.Context) {mailLog.Send(c, db)})
+        public.POST("/mail/send", func(c *gin.Context) { mailLog.Send(c, db) })
     }
 
-	protected := r.Group("/api")
-	protected.Use(middleware.AuthMiddleware())
+    protected := r.Group("/api")
+    protected.Use(middleware.AuthMiddleware())
     {
-		protected.GET("/mail/logs", func(c *gin.Context) {mailLog.Logs(c, db)})
-	}
+        org := protected.Group("/organization/:slug")
+        org.Use(middleware.OrgMiddleware(db))
+        {
+            org.GET("/mail/logs", func(c *gin.Context) { mailLog.Logs(c, db) })
+        }
+    }
 }

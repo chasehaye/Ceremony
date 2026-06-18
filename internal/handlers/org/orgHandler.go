@@ -5,8 +5,6 @@ import (
 	"Ceremony/internal/models"
 	"Ceremony/internal/crypt"
 	"net/http"
-	"errors"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -21,14 +19,28 @@ func CreateOrg(c *gin.Context, db *gorm.DB) {
 	}
 
 	var slug string
+
 	for range 5 {
 		s, err := crypt.GenerateSlug()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, dtos.ServerErrorResponse{Error: "Failed to generate organization slug"})
+			c.JSON(http.StatusInternalServerError, dtos.ServerErrorResponse{
+				Error: "Failed to generate organization slug",
+			})
 			return
 		}
-		var existing models.Organization
-		if errors.Is(db.Where("slug = ?", s).First(&existing).Error, gorm.ErrRecordNotFound) {
+
+		var count int64
+		if err := db.Model(&models.Organization{}).
+			Where("slug = ?", s).
+			Count(&count).Error; err != nil {
+
+			c.JSON(http.StatusInternalServerError, dtos.ServerErrorResponse{
+				Error: "Failed to check slug uniqueness",
+			})
+			return
+		}
+
+		if count == 0 {
 			slug = s
 			break
 		}
