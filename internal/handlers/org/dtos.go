@@ -44,3 +44,55 @@ type StatsResponse struct {
     ActiveApps     int64               `json:"active_apps"`
     RecentLogs     []RecentLogResponse `json:"recent_logs"`
 }
+
+
+
+
+
+
+type MemberResponse struct {
+	UserID uint   `json:"user_id"`
+	Name   string `json:"name"`
+	Email  string `json:"email"`
+	Role   string `json:"role"`
+}
+
+type ListMembersResponse struct {
+	Members []MemberResponse `json:"members"`
+}
+
+type ChangeRoleInput struct {
+	Role string `json:"role"` // "admin" or "member"
+}
+
+type CreateInviteInput struct {
+	Email string `json:"email" binding:"omitempty,email"` // optional; validated only if present
+	Role  string `json:"role"`                            // "member" or "admin"; defaults to member
+}
+
+type InviteResponse struct {
+	ID        uint      `json:"id,omitempty"`
+	Token     string    `json:"token"`
+	Email     string    `json:"email,omitempty"`
+	Role      string    `json:"role"`
+	ExpiresAt time.Time `json:"expires_at"`
+	Link      string    `json:"link"`
+}
+
+type InvitePreviewResponse struct {
+	OrganizationName string `json:"organization_name"`
+	OrganizationSlug string `json:"organization_slug"`
+	Role             string `json:"role"`
+	Email            string `json:"email,omitempty"`
+}
+
+type AcceptInviteResponse struct {
+	Message          string `json:"message"`
+	OrganizationName string `json:"organization_name"`
+	OrganizationSlug string `json:"organization_slug"`
+	Role             string `json:"role"`
+}
+
+type ListInvitesResponse struct {
+	Invites []InviteResponse `json:"invites"`
+}

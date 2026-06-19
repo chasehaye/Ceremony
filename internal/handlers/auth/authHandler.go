@@ -76,8 +76,10 @@ func RegisterUser(c *gin.Context, db *gorm.DB) {
 		return
 	}
 	isAdmin := false
+    isApproved := false
 	if cleanEmail == config.App.AdminEmail {
 		isAdmin = true
+        isApproved = true
 	}
 
     user := models.User{
@@ -112,11 +114,12 @@ func RegisterUser(c *gin.Context, db *gorm.DB) {
         Message:    "success",
         IsAdmin:    isAdmin,
         IsVerified: false,
-        IsApproved: false,
+        IsApproved: isApproved,
         IsBanned:   false,
         CanCreate:  false,
         UserEmail:  cleanEmail,
         UserName:   displayName,
+        IsSuperAdmin: user.Email == config.App.AdminEmail,
     })
 }
 
@@ -188,6 +191,7 @@ func LoginUser(c *gin.Context, db *gorm.DB) {
         CanCreate:  user.CanCreate,
         UserEmail:  user.Email,
         UserName:   user.Name,
+        IsSuperAdmin: user.Email == config.App.AdminEmail,
     })
 }
 
@@ -243,5 +247,6 @@ func GetMe(c *gin.Context, db *gorm.DB) {
         IsApproved: user.IsApproved,
         IsBanned:   user.IsBanned,
         CanCreate:  user.CanCreate,
+        IsSuperAdmin: user.Email == config.App.AdminEmail,
     })
 }

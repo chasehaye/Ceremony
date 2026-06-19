@@ -11,6 +11,9 @@ type UserListItem struct {
     IsAdmin    bool      `json:"is_admin"`
     IsVerified bool      `json:"is_verified"`
     IsApproved bool      `json:"is_approved"`
+    IsBanned   bool      `json:"is_banned"`
+    CanCreate  bool      `json:"can_create"`
+    IsSuperAdmin bool `json:"is_super_admin"`
 }
 
 type ListUsersResponse struct {

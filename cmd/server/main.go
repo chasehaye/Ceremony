@@ -43,6 +43,7 @@ func main() {
         &models.App{},
         &models.EmailTemplate{},
         &models.EmailLog{},
+        &models.OrganizationInvite{},
     )
     if err != nil {
         log.Fatalf("Migration failed: %v", err)

@@ -13,7 +13,6 @@ type PasswordReset struct {
     Used      bool      `gorm:"default:false"`
     User      User      `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
-
 type EmailVerification struct {
     gorm.Model
     UserID    uint      `gorm:"index"`
@@ -22,7 +21,6 @@ type EmailVerification struct {
     Used      bool      `gorm:"default:false"`
     User      User      `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
-
 type User struct {
     ID        uint        `gorm:"primarykey"`
     CreatedAt time.Time
@@ -44,27 +42,43 @@ type User struct {
 
 
 
+type OrganizationMember struct {
+    ID        uint `gorm:"primarykey"`
+    CreatedAt time.Time
+    UpdatedAt time.Time
+
+    OrganizationID uint   `gorm:"uniqueIndex:idx_org_user"`
+    UserID         uint   `gorm:"uniqueIndex:idx_org_user"`
+    Role           string `gorm:"type:varchar(50);default:'member'"`
+
+    Organization Organization `gorm:"foreignKey:OrganizationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+    User         User         `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+}
+// Role: member, admin. Single-use; consumed on accept.
+type OrganizationInvite struct {
+    gorm.Model
+    OrganizationID uint      `gorm:"index"`
+    InvitedByID    uint      `gorm:"index"`
+    Email          string    `gorm:"type:varchar(255);index"` // optional; empty = anyone with the link
+    Role           string    `gorm:"type:varchar(50);default:'member'"`
+    Token          string    `gorm:"uniqueIndex;type:varchar(255);not null"`
+    ExpiresAt      time.Time `gorm:"index"`
+    Used           bool      `gorm:"default:false"`
+
+    Organization Organization `gorm:"foreignKey:OrganizationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+    InvitedBy    User         `gorm:"foreignKey:InvitedByID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+}
 type Organization struct {
     gorm.Model
     Name    string `gorm:"type:varchar(255);not null"`
     Slug    string `gorm:"uniqueIndex;type:varchar(255);not null"`
-    
+
     Members   []OrganizationMember `gorm:"foreignKey:OrganizationID"`
+    Invites   []OrganizationInvite `gorm:"foreignKey:OrganizationID"`
     Apps      []App                `gorm:"foreignKey:OrganizationID"`
     EmailLogs []EmailLog           `gorm:"foreignKey:OrganizationID"`
     Templates []EmailTemplate      `gorm:"foreignKey:OrganizationID"`
     Domains   []Domain             `gorm:"foreignKey:OrganizationID"`
-}
-
-// Role: owner, admin, member
-type OrganizationMember struct {
-    gorm.Model
-    OrganizationID uint   `gorm:"index"`
-    UserID         uint   `gorm:"index"`
-    Role           string `gorm:"type:varchar(50);default:'member'"`
-    
-    Organization Organization `gorm:"foreignKey:OrganizationID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-    User         User         `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 

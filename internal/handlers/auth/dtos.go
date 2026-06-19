@@ -41,6 +41,7 @@ type RegisterResponse struct {
     CanCreate  bool   `json:"can_create"`
     UserEmail  string `json:"user_email"`
     UserName   string `json:"user_name"`
+    IsSuperAdmin bool   `json:"is_super_admin"`
 }
 
 type LoginResponse struct {
@@ -52,15 +53,17 @@ type LoginResponse struct {
     CanCreate  bool   `json:"can_create"`
     UserEmail  string `json:"user_email"`
     UserName   string `json:"user_name"`
+    IsSuperAdmin bool   `json:"is_super_admin"`
 }
 
 type GetMeResponse struct {
-    ID         uint   `json:"id"`
-    UserName   string `json:"user_name"`
-    UserEmail  string `json:"user_email"`
-    IsAdmin    bool   `json:"is_admin"`
-    IsVerified bool   `json:"is_verified"`
-    IsApproved bool   `json:"is_approved"`
-    IsBanned   bool   `json:"is_banned"`
-    CanCreate  bool   `json:"can_create"`
+    ID           uint   `json:"id"`
+    UserName     string `json:"user_name"`
+    UserEmail    string `json:"user_email"`
+    IsAdmin      bool   `json:"is_admin"`
+    IsVerified   bool   `json:"is_verified"`
+    IsApproved   bool   `json:"is_approved"`
+    IsBanned     bool   `json:"is_banned"`
+    CanCreate    bool   `json:"can_create"`
+    IsSuperAdmin bool   `json:"is_super_admin"`
 }
