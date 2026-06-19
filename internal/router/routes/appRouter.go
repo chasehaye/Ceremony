@@ -10,7 +10,7 @@ import (
 
 func App(r *gin.Engine, db *gorm.DB) {
 	protected := r.Group("/api")
-	protected.Use(middleware.AuthMiddleware())
+	protected.Use(middleware.AuthMiddleware(db))
 	{
 		org := protected.Group("/organization/:slug")
 		org.Use(middleware.OrgMiddleware(db))
@@ -20,6 +20,7 @@ func App(r *gin.Engine, db *gorm.DB) {
 			org.GET("/apps/:appSlug", func(c *gin.Context) { app.GetApp(c, db) })
 			org.DELETE("/apps/:appSlug", func(c *gin.Context) { app.DeleteApp(c, db) })
 			org.POST("/apps/:appSlug/rotate-key", func(c *gin.Context) { app.RotateKey(c, db) })
+			org.PATCH("/apps/:appSlug/toggle", func(c *gin.Context) { app.ToggleApp(c, db) })
 		}
 	}
 }

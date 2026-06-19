@@ -1,14 +1,25 @@
 package middleware
 
 import (
-    "net/http"
-
-    "github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-
     "Ceremony/internal/dtos"
+    "net/http"
+	"github.com/gin-gonic/gin"
+    "gorm.io/gorm"
     "Ceremony/internal/models"
 )
+
+func CanCreateMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        canCreate := c.MustGet("canCreate").(bool)
+        if !canCreate {
+            c.AbortWithStatusJSON(http.StatusForbidden, dtos.ForbiddenResponse{
+                Error: "You do not have permission to create resources",
+            })
+            return
+        }
+        c.Next()
+    }
+}
 
 func AdminMiddleware(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {

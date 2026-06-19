@@ -109,13 +109,15 @@ func RegisterUser(c *gin.Context, db *gorm.DB) {
     )
 
     c.JSON(http.StatusCreated, RegisterResponse{
-		Message:   "success",
-		IsAdmin:   isAdmin,
+        Message:    "success",
+        IsAdmin:    isAdmin,
         IsVerified: false,
         IsApproved: false,
-		UserEmail: cleanEmail,
-		UserName:  displayName,
-	})
+        IsBanned:   false,
+        CanCreate:  false,
+        UserEmail:  cleanEmail,
+        UserName:   displayName,
+    })
 }
 
 // LoginUser godoc
@@ -177,14 +179,16 @@ func LoginUser(c *gin.Context, db *gorm.DB) {
         true,
     )
 
-	c.JSON(http.StatusOK, LoginResponse{
-		Message:   "success",
-		IsAdmin:   user.IsAdmin,
+    c.JSON(http.StatusOK, LoginResponse{
+        Message:    "success",
+        IsAdmin:    user.IsAdmin,
         IsVerified: user.IsVerified,
         IsApproved: user.IsApproved,
-		UserEmail: user.Email,
-		UserName:  user.Name,
-	})
+        IsBanned:   user.IsBanned,
+        CanCreate:  user.CanCreate,
+        UserEmail:  user.Email,
+        UserName:   user.Name,
+    })
 }
 
 // LogOut godoc
@@ -231,11 +235,13 @@ func GetMe(c *gin.Context, db *gorm.DB) {
 	}
 
     c.JSON(http.StatusOK, GetMeResponse{
-        ID:        user.ID,
-        UserName:  user.Name,
-        UserEmail: user.Email,
-        IsAdmin:   user.IsAdmin,
+        ID:         user.ID,
+        UserName:   user.Name,
+        UserEmail:  user.Email,
+        IsAdmin:    user.IsAdmin,
         IsVerified: user.IsVerified,
         IsApproved: user.IsApproved,
+        IsBanned:   user.IsBanned,
+        CanCreate:  user.CanCreate,
     })
 }

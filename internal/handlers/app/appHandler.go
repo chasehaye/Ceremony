@@ -162,3 +162,21 @@ func RotateKey(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusOK, gin.H{"api_key": newKey})
 }
+
+func ToggleApp(c *gin.Context, db *gorm.DB) {
+    orgID := c.MustGet("orgID").(uint)
+    slug := c.Param("appSlug")
+
+    var a models.App
+    if err := db.Where("slug = ? AND organization_id = ?", slug, orgID).First(&a).Error; err != nil {
+        c.JSON(http.StatusNotFound, dtos.NotFoundErrorResponse{Error: "App not found"})
+        return
+    }
+
+    if err := db.Model(&a).Update("is_active", !a.IsActive).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, dtos.ServerErrorResponse{Error: "Failed to toggle app"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"is_active": !a.IsActive})
+}

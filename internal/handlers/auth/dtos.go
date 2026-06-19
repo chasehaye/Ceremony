@@ -7,40 +7,13 @@ type RegisterInput struct {
 	Password string `json:"password" binding:"required,min=8,max=72" example:"SecurePass123!"`
 }
 
-type RegisterResponse struct {
-    Message    string `json:"message" example:"success"`
-    IsAdmin    bool   `json:"is_admin" example:"false"`
-    IsVerified bool   `json:"is_verified" example:"false"`
-    IsApproved bool   `json:"is_approved" example:"false"`
-    UserEmail  string `json:"user_email" example:"user@example.com"`
-    UserName   string `json:"user_name" example:"User Name"`
-}
-
 type LoginInput struct {
 	Email    string `json:"email" binding:"required,email,max=255" example:"user@example.com"`
 	Password string `json:"password" binding:"required,min=8,max=72" example:"SecurePass123!"`
 }
 
-type LoginResponse struct {
-    Message   string `json:"message" example:"success"`
-    IsAdmin   bool   `json:"is_admin" example:"false"`
-	IsVerified bool   `json:"is_verified" example:"false"`
-    IsApproved bool   `json:"is_approved" example:"false"`
-    UserEmail string `json:"user_email" example:"user@example.com"`
-    UserName  string `json:"user_name" example:"User Name"`
-}
-
 type LogOutResponse struct {
 	Message  string `json:"message" example:"success"`
-}
-
-type GetMeResponse struct {
-    ID        uint   `json:"id" example:"1"`
-    UserName  string `json:"user_name" example:"User Name"`
-    UserEmail string `json:"user_email" example:"user@example.com"`
-    IsAdmin   bool   `json:"is_admin" example:"false"`
-	IsVerified bool   `json:"is_verified" example:"false"`
-    IsApproved bool   `json:"is_approved" example:"false"`
 }
 
 type ForgotPasswordInput struct {
@@ -57,4 +30,37 @@ type ResetPasswordInput struct {
 
 type ResetPasswordResponse struct {
 	Message  string `json:"message" example:"Password updated successfully"`
+}
+
+type RegisterResponse struct {
+    Message    string `json:"message"`
+    IsAdmin    bool   `json:"is_admin"`
+    IsVerified bool   `json:"is_verified"`
+    IsApproved bool   `json:"is_approved"`
+    IsBanned   bool   `json:"is_banned"`
+    CanCreate  bool   `json:"can_create"`
+    UserEmail  string `json:"user_email"`
+    UserName   string `json:"user_name"`
+}
+
+type LoginResponse struct {
+    Message    string `json:"message"`
+    IsAdmin    bool   `json:"is_admin"`
+    IsVerified bool   `json:"is_verified"`
+    IsApproved bool   `json:"is_approved"`
+    IsBanned   bool   `json:"is_banned"`
+    CanCreate  bool   `json:"can_create"`
+    UserEmail  string `json:"user_email"`
+    UserName   string `json:"user_name"`
+}
+
+type GetMeResponse struct {
+    ID         uint   `json:"id"`
+    UserName   string `json:"user_name"`
+    UserEmail  string `json:"user_email"`
+    IsAdmin    bool   `json:"is_admin"`
+    IsVerified bool   `json:"is_verified"`
+    IsApproved bool   `json:"is_approved"`
+    IsBanned   bool   `json:"is_banned"`
+    CanCreate  bool   `json:"can_create"`
 }

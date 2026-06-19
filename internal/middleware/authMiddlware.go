@@ -5,13 +5,12 @@ import (
     "Ceremony/internal/dtos"
     "net/http"
 	"github.com/gin-gonic/gin"
-
-    
-
+    "Ceremony/internal/models"
+    "gorm.io/gorm"
 )
 
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         tokenString, err := c.Cookie("token")
         
@@ -35,6 +34,22 @@ func AuthMiddleware() gin.HandlerFunc {
 			})
 			return
 		}
+
+        var user models.User
+		if err := db.First(&user, uid).Error; err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, dtos.UnauthorizedResponse{
+				Error: "User not found",
+			})
+			return
+		}
+
+        if user.IsBanned {
+			c.AbortWithStatusJSON(http.StatusForbidden, dtos.ForbiddenResponse{
+				Error: "Your account has been banned",
+			})
+			return
+		}
+
         c.Set("userID", uint(uid))
         c.Next()
     }

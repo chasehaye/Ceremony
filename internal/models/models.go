@@ -35,6 +35,8 @@ type User struct {
 	IsAdmin     bool      `gorm:"default:false"`
     IsVerified  bool      `gorm:"default:false"`
     IsApproved  bool      `gorm:"default:false"`
+    IsBanned        bool  `gorm:"default:false"`
+    CanCreate       bool  `gorm:"default:false"`
 
     Memberships []OrganizationMember `gorm:"foreignKey:UserID"`
 }

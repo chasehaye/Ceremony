@@ -19,7 +19,7 @@ func MailLog(r *gin.Engine, db *gorm.DB){
     }
 
     protected := r.Group("/api")
-    protected.Use(middleware.AuthMiddleware())
+    protected.Use(middleware.AuthMiddleware(db))
     {
         org := protected.Group("/organization/:slug")
         org.Use(middleware.OrgMiddleware(db))

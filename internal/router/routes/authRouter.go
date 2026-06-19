@@ -23,7 +23,7 @@ func Auth(r *gin.Engine, db *gorm.DB){
 
 
 	protected := r.Group("/api")
-	protected.Use(middleware.AuthMiddleware())
+	protected.Use(middleware.AuthMiddleware(db))
     {
         protected.GET("/auth/me", func(c *gin.Context) {auth.GetMe(c, db)})
         protected.POST("/auth/logout", func(c *gin.Context) {auth.LogOut(c, db)})

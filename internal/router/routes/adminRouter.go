@@ -11,7 +11,7 @@ import (
 func Admin(r *gin.Engine, db *gorm.DB){
 
 	protected := r.Group("/api")
-	protected.Use(middleware.AuthMiddleware())
+	protected.Use(middleware.AuthMiddleware(db))
 	protected.Use(middleware.AdminMiddleware(db))
     {
         protected.GET("/admin/users", func(c *gin.Context) {admin.ListUsers(c, db)})

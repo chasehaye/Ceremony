@@ -158,3 +158,51 @@ func DeleteOrg(c *gin.Context, db *gorm.DB) {
 
 	c.JSON(http.StatusOK, DeleteOrgResponse{Message: "Organization deleted"})
 }
+
+func GetStats(c *gin.Context, db *gorm.DB) {
+    orgID := c.MustGet("orgID").(uint)
+
+    var totalEmails int64
+    db.Model(&models.EmailLog{}).Where("organization_id = ?", orgID).Count(&totalEmails)
+
+    var sentEmails int64
+    db.Model(&models.EmailLog{}).Where("organization_id = ? AND status = ?", orgID, "sent").Count(&sentEmails)
+
+    var failedEmails int64
+    db.Model(&models.EmailLog{}).Where("organization_id = ? AND status = ?", orgID, "failed").Count(&failedEmails)
+
+    var pendingEmails int64
+    db.Model(&models.EmailLog{}).Where("organization_id = ? AND status = ?", orgID, "pending").Count(&pendingEmails)
+
+    var totalTemplates int64
+    db.Model(&models.EmailTemplate{}).Where("organization_id = ?", orgID).Count(&totalTemplates)
+
+    var activeApps int64
+    db.Model(&models.App{}).Where("organization_id = ? AND is_active = ?", orgID, true).Count(&activeApps)
+
+    var recentLogs []models.EmailLog
+    db.Where("organization_id = ?", orgID).
+        Order("created_at DESC").
+        Limit(5).
+        Find(&recentLogs)
+
+    recentItems := make([]RecentLogResponse, len(recentLogs))
+    for i, log := range recentLogs {
+        recentItems[i] = RecentLogResponse{
+            ToEmail:   log.ToEmail,
+            Subject:   log.Subject,
+            Status:    log.Status,
+            CreatedAt: log.CreatedAt,
+        }
+    }
+
+    c.JSON(http.StatusOK, StatsResponse{
+        TotalEmails:    totalEmails,
+        SentEmails:     sentEmails,
+        FailedEmails:   failedEmails,
+        PendingEmails:  pendingEmails,
+        TotalTemplates: totalTemplates,
+        ActiveApps:     activeApps,
+        RecentLogs:     recentItems,
+    })
+}
